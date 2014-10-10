@@ -1,0 +1,44 @@
+{
+    "main": {
+        'input-selector': {
+            'type' : 'option'
+            'vcr' : 'HTPC',
+            'cbl' : 'FiOS',
+            'aux1' : 'Wii',
+            'CD' : 'BT'
+            },
+        'volume' : {
+            'type' : 'int'
+            'min' : 0
+            'max' : 100
+            }
+    },
+    'zone2': {
+        'input-selector': {
+            'type' : 'option'
+            'vcr' : 'HTPC',
+            'cbl' : 'FiOS',
+            'aux1' : 'Wii',
+            'CD' : 'BT'
+            },
+        'volume' : {
+            'type' : 'int'
+            'min' : 0
+            'max' : 100
+            }
+    },
+    'zone3': {
+        'input-selector': {
+            'type' : 'option'
+            'vcr' : 'HTPC',
+            'cbl' : 'FiOS',
+            'aux1' : 'Wii',
+            'CD' : 'BT'
+            },
+        'volume' : {
+            'type' : 'int'
+            'min' : 0
+            'max' : 100
+            }
+    }
+}

@@ -1,0 +1,42 @@
+{% extends "layout.html" %}
+{% block body %}
+<script type=text/javascript src="{{
+  url_for('static', filename='state_view.js') }}"></script>
+<script type=text/javascript src="{{
+  url_for('static', filename='state_model.js') }}"></script>
+<script type=text/javascript src="{{
+  url_for('static', filename='detectmobilebrowser.js') }}"></script>
+<script type="text/javascript">
+  var $TEST_DESC = 0
+  var $TEST_VIEW = 0
+
+  $( window ).load( function() {
+      if (jQuery.browser.mobile == false) {
+          console.log('Not a mobile browser...')
+          $TEST_VIEW = new ProgramDescriptionView(ProgramDescriptionModel);
+      } else {
+          // TODO: create mobile view
+          $TEST_VIEW = new ProgramDescriptionView(ProgramDescriptionModel);
+      }
+  });
+
+  $(document).ready( function() {
+      var sse = new EventSource('/_event_stream');
+      var on_status_message = function(message) {
+//          console.log('A status message has arrived!');
+//          $('#output').append('<li>'+message.data+'</li>');
+          $TEST_VIEW.update_status(message)
+      };
+      var on_error_message = function(message) {
+//          console.log('A status message has arrived!');
+//          $('#output').append('<li>'+message.data+'</li>');
+          $TEST_VIEW.update_error(message)
+      };
+      sse.addEventListener('status', on_status_message, false);
+      sse.addEventListener('error', on_error_message, false);
+    })
+</script>
+
+<h1>webOknkyo</h1>
+
+{% endblock %}

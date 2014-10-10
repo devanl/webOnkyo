@@ -1,0 +1,12 @@
+<!doctype html>
+<title>webOnkyo</title>
+<link rel="stylesheet" href="{{
+  url_for('static', filename='jquery.mobile-1.4.4.css') }}">
+<script type=text/javascript src="{{
+  url_for('static', filename='jquery-2.1.1.js') }}"></script>
+<script type=text/javascript src="{{
+  url_for('static', filename='jquery.mobile-1.4.4.min.js') }}"></script>
+<script type="text/javascript">
+  var $SCRIPT_ROOT = {{ request.script_root|tojson|safe }};
+</script>
+{% block body %}{% endblock %}
