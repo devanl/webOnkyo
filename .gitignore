@@ -1,0 +1,8 @@
+*.pyc
+build
+
+/LOCAL_TODO
+/.idea/
+
+/dist
+*.egg-info/
