@@ -7,13 +7,38 @@ function ProgramDescriptionView(model_type)
     this.my_model = new model_type();
     this.my_model.load_desc(this);
 
-
-
     this.output_list = $('<ul id="output"></ul>').appendTo(this.pane.bottom);
 }
 
-ProgramDescriptionView.prototype.status_bars = function() {
+ProgramDescriptionView.prototype.load_desc_view = function(data) {
+    this.container = $( '<div id="webonkyo-containter"></div>' ).appendTo( 'body' );
+    for (var key in data) {
+        ZoneView(key, data[key]).appendTo( container );
+    }
 };
+
+function ZoneView(zone_name, data) {
+    this.zone = zone_name;
+    this.container = $( '<h2 id=zone-container-"' + zone_name + '">' + zone_name + '</h2>' )
+    for (var key in data) {
+        ControlView(key, data[key]).appendTo( container )
+    }
+}
+
+function ControlView(control_name, data) {
+    this.control = control_name;
+    if ('type' in data){
+        if( data['type'] == 'option' ){
+            this.container = $( '<div class="ui-field-contain"><fieldset data-role="controlgroup" data-type="horizontal" data-mini="true"/></div>' )
+            for (var key in data['options']) {
+                var input = $( '<input type="radio" name="radio-action" id="' + key + '" value="' + key + '"><label for="' + key + '">' + data['options'][key] + '</label>' )
+                input.appendTo( container.next() )
+            }
+        } else if ( data['type'] == 'int' ){
+            this.container = $( '<input type="range" data-mini="true" min="0" max="100" value="50">' )
+        }
+    }
+}
 
 ProgramDescriptionView.prototype.save_desc = function() {
     this.my_model = this.create_model();
@@ -72,13 +97,4 @@ ProgramDescriptionView.prototype.update_status = function(message)
 //    console.log('A status message has arrived!');
     var data = JSON.parse(message.data);
 
-};
-
-ProgramDescriptionView.prototype.load_desc_view = function(desc)
-{
-    my_self = this;
-    this.count_input[0].value = desc['count'];
-    desc.states.forEach(function(entry) {
-        my_self.add_state_view(entry);
-    });
 };
