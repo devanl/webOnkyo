@@ -7,38 +7,88 @@ function ProgramDescriptionView(model_type)
     this.my_model = new model_type();
     this.my_model.load_desc(this);
 
-    this.output_list = $('<ul id="output"></ul>').appendTo(this.pane.bottom);
+    this.output_list = $('<ul id="output"></ul>').appendTo( 'body' );
 }
 
 ProgramDescriptionView.prototype.load_desc_view = function(data) {
-    this.container = $( '<div id="webonkyo-containter"></div>' ).appendTo( 'body' );
+    this.container = $( '<div id="webonkyo-containter"></div>' ).appendTo( 'article#webOnkyo-page' );
     for (var key in data) {
-        ZoneView(key, data[key]).appendTo( container );
+        var view_element = new ZoneView(this.container, key, data[key]);
     }
 };
 
-function ZoneView(zone_name, data) {
-    this.zone = zone_name;
-    this.container = $( '<h2 id=zone-container-"' + zone_name + '">' + zone_name + '</h2>' )
+function ZoneView(parent, zone_name, data) {
+    this.wo_name = zone_name;
+    this.container = $( '<div class="webonkyo zone-container zone-container-' + zone_name + '"><h2>' + zone_name + '</h2></div>' )
+    this.container.appendTo( parent );
     for (var key in data) {
-        ControlView(key, data[key]).appendTo( container )
+        var view_element = new ControlView(this.container, key, data[key]);
     }
+    this.container.data('view_obj', this);
 }
 
-function ControlView(control_name, data) {
-    this.control = control_name;
+function ControlView(parent, control_name, data) {
+    this.wo_name = control_name;
+
+    var action = function() {
+        var my_selector = $( this );
+        var fqn = ControlView.prototype.fqn(my_selector);
+
+        fqn += this.value;
+
+        console.log('Click function: ' + fqn)
+
+        var jqxhr = $.getJSON( "command/"+fqn, function() {
+          console.log( "success" );
+        })
+          .fail(function() {
+            console.log( "error" );
+          })
+    };
+
     if ('type' in data){
         if( data['type'] == 'option' ){
-            this.container = $( '<div class="ui-field-contain"><fieldset data-role="controlgroup" data-type="horizontal" data-mini="true"/></div>' )
-            for (var key in data['options']) {
-                var input = $( '<input type="radio" name="radio-action" id="' + key + '" value="' + key + '"><label for="' + key + '">' + data['options'][key] + '</label>' )
-                input.appendTo( container.next() )
+            this.container = $('<form class="webonkyo"><fieldset data-role="controlgroup" data-type="horizontal" ' +
+                'data-mini="true"></fieldset></form>');
+
+            var option_char = 'a';
+
+            for (var key in data.options) {
+
+                var input = $('<input type="radio" name="radio-choice-h-2"\
+                  id="radio-choice-h-6' + option_char + '" value="' + key + '"><label\
+                  for="radio-choice-h-6' + option_char + '">' + data.options[key] + '</label>');
+                input.appendTo(this.container.children());
+
+                $(input[0]).bind("click", action);
+
+                option_char = String.fromCharCode(option_char.charCodeAt(0) + 1);
+
             }
+            this.container.appendTo(parent).trigger("create");
         } else if ( data['type'] == 'int' ){
-            this.container = $( '<input type="range" data-mini="true" min="0" max="100" value="50">' )
+            this.container = $( '<input type="range" data-mini="true" min="0" max="100" value="50" ' +
+                'data-highlight="true" name="slider-0" class="webonkyo" id="slider-0">' ).appendTo(parent);
+            this.container.bind("slidestop", action);
+            this.container.slider();
         }
     }
+    this.container.data('view_obj', this);
 }
+
+ControlView.prototype.fqn = function(element) {
+    var ret_val = '';
+    if (element.hasClass('webonkyo')) {
+        var temp = $(element).data('view_obj');
+        ret_val = temp.wo_name + '.'
+    }
+
+    if (element.hasClass("zone-container")) {
+        return ret_val
+    } else {
+        return ControlView.prototype.fqn(element.parent()) + ret_val
+    }
+};
 
 ProgramDescriptionView.prototype.save_desc = function() {
     this.my_model = this.create_model();

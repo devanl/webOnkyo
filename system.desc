@@ -1,50 +1,50 @@
 {
     "main": {
-        'input-selector': {
-            'type' : 'option'
-            'options' : {
-                'vcr' : 'HTPC',
-                'cbl' : 'FiOS',
-                'aux1' : 'Wii',
-                'CD' : 'BT'
+        "input-selector": {
+            "type" : "option",
+            "options" : {
+                "vcr" : "HTPC",
+                "cbl" : "FiOS",
+                "aux1" : "Wii",
+                "CD" : "BT"
                 }
             },
-        'volume' : {
-            'type' : 'int'
-            'min' : 0
-            'max' : 100
+        "volume" : {
+            "type" : "int",
+            "min" : 0,
+            "max" : 100
             }
     },
-    'zone2': {
-        'input-selector': {
-            'type' : 'option'
-            'options' : {
-                'vcr' : 'HTPC',
-                'cbl' : 'FiOS',
-                'aux1' : 'Wii',
-                'CD' : 'BT'
+    "zone2": {
+        "input-selector": {
+            "type" : "option",
+            "options" : {
+                "vcr" : "HTPC",
+                "cbl" : "FiOS",
+                "aux1" : "Wii",
+                "CD" : "BT"
                 }
             },
-        'volume' : {
-            'type' : 'int'
-            'min' : 0
-            'max' : 100
+        "volume" : {
+            "type" : "int",
+            "min" : 0,
+            "max" : 100
             }
     },
-    'zone3': {
-        'input-selector': {
-            'type' : 'option'
-            'options' : {
-                'vcr' : 'HTPC',
-                'cbl' : 'FiOS',
-                'aux1' : 'Wii',
-                'CD' : 'BT'
+    "zone3": {
+        "input-selector": {
+            "type" : "option",
+            "options" : {
+                "vcr" : "HTPC",
+                "cbl" : "FiOS",
+                "aux1" : "Wii",
+                "CD" : "BT"
                 }
             },
-        'volume' : {
-            'type' : 'int'
-            'min' : 0
-            'max' : 100
+        "volume" : {
+            "type" : "int",
+            "min" : 0,
+            "max" : 100
             }
     }
 }

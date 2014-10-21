@@ -1,5 +1,5 @@
 {% extends "layout.html" %}
-{% block body %}
+{% block head %}
 <script type=text/javascript src="{{
   url_for('static', filename='state_view.js') }}"></script>
 <script type=text/javascript src="{{
@@ -36,7 +36,39 @@
       sse.addEventListener('error', on_error_message, false);
     })
 </script>
+<style>
+    img.fullscreen {
+        max-height: 100%;
+        max-width: 100%;
+    }
+</style>
+{% endblock %}
+{% block body %}
 
-<h1>webOknkyo</h1>
+    <div data-role="page" id="home">
+        <header data-role="header" class="ui-header ui-bar-a" role="banner">
+            <h1 class="ui-title" role="heading" aria-level="1">My webOnkyo</h1>
+        </header>
+
+        <article data-role="content" id="webOnkyo-page" class="ui-content" role="main"></article>
+
+        <footer data-role="footer" data-position="fixed" class="ui-footer ui-bar-a ui-footer-fixed slideup" role="contentinfo">
+            <nav data-role="navbar" class="ui-navbar ui-mini" role="navigation">
+                <ul class="ui-grid-b">
+                    <li class="ui-block-a"><a href="#home" data-icon="home" data-corners="false" data-shadow="false" data-iconshadow="true" data-wrapperels="span" data-iconpos="top" data-theme="a" data-inline="true" class="ui-btn ui-btn-inline ui-btn-icon-top ui-btn-hover-a"><span class="ui-btn-inner"><span class="ui-btn-text">Home</span><span class="ui-icon ui-icon-home ui-icon-shadow">&nbsp;</span></span></a></li>
+                    <li class="ui-block-b"><a href="#dog" data-icon="grid" data-corners="false" data-shadow="false" data-iconshadow="true" data-wrapperels="span" data-iconpos="top" data-theme="a" data-inline="true" class="ui-btn ui-btn-inline ui-btn-icon-top ui-btn-up-a"><span class="ui-btn-inner"><span class="ui-btn-text">Dog</span><span class="ui-icon ui-icon-grid ui-icon-shadow">&nbsp;</span></span></a></li>
+{#                    <li class="ui-block-c"><a href="Info" data-icon="info" data-corners="false" data-shadow="false" data-iconshadow="true" data-wrapperels="span" data-iconpos="top" data-theme="a" data-inline="true" class="ui-btn ui-btn-inline ui-btn-icon-top ui-btn-up-a"><span class="ui-btn-inner"><span class="ui-btn-text">Info</span><span class="ui-icon ui-icon-info ui-icon-shadow">&nbsp;</span></span></a></li>#}
+                </ul>
+            </nav>
+        </footer>
+    </div>
+
+    <div data-role="page" id="dog">
+        <header data-role="header">
+            <h1>Min Pin</h1>
+            <a href="#home" data-icon="grid" data-iconpos="notext">Photos</a>
+        </header>
+        <img src="images/doggie.jpg" class="fullscreen" alt="Min Pin" />
+    </div><!-- Page Dog -->
 
 {% endblock %}

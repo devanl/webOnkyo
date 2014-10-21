@@ -6,7 +6,6 @@ from Queue import Queue
 from flask import Flask, render_template, request, Response
 import threading
 import contextlib
-import RPi.GPIO as GPIO
 app = Flask(__name__)
 
 
@@ -129,13 +128,20 @@ class StateManager(object):
         self.__event_dispatch = EventDispatcher()
         self.event_log = []
 
+    def exec_desc(self, command):
+        return {'retval': 'success'}
+
     @staticmethod
     def load_desc(file_name):
-        with open(file_name) as json_file:
-            desc = json.load(json_file)
+        try:
+            with open(file_name) as json_file:
+                desc = json.load(json_file)
 
-            # print repr(desc)
-            return desc
+                print repr(desc)
+                return desc
+        except BaseException as err:
+            print repr(err)
+            raise err
 
     @staticmethod
     def save_desc(desc, file_name):
@@ -150,6 +156,11 @@ class StateManager(object):
                 # print 'sending %r' % (message,)
                 yield message
 
+@app.route('/command/<command>')
+def exec_command(command):
+    print command
+    return json.dumps(state_manager.exec_desc(command))
+
 
 @app.route('/_event_stream')
 def sse_request():
@@ -163,7 +174,6 @@ def load_desc():
     global state_manager
     print 'load_desc call'
     return json.dumps(state_manager.load_desc('system.desc'))
-
 
 # @app.route('/_save_desc', methods=['PUT'])
 # def save_desc():
@@ -180,4 +190,4 @@ def index():
 
 if __name__ == "__main__":
     state_manager = StateManager()
-    app.run(threaded=True, host='0.0.0.0', port=80)
+    app.run(threaded=True, host='0.0.0.0')
