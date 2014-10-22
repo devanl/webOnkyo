@@ -34,9 +34,9 @@ function ControlView(parent, control_name, data) {
         var my_selector = $( this );
         var fqn = ControlView.prototype.fqn(my_selector);
 
-        fqn += this.value;
+        fqn += '=' + this.value;
 
-        console.log('Click function: ' + fqn)
+        console.log('Click function: ' + fqn);
 
         var jqxhr = $.getJSON( "command/"+fqn, function() {
           console.log( "success" );
@@ -67,8 +67,9 @@ function ControlView(parent, control_name, data) {
             }
             this.container.appendTo(parent).trigger("create");
         } else if ( data['type'] == 'int' ){
+            this.container = $( '<div class="ui-field-contain"></div' ).appendTo(parent);
             this.container = $( '<input type="range" data-mini="true" min="0" max="100" value="50" ' +
-                'data-highlight="true" name="slider-0" class="webonkyo" id="slider-0">' ).appendTo(parent);
+                'data-highlight="true" class="webonkyo">' ).appendTo(this.container);
             this.container.bind("slidestop", action);
             this.container.slider();
         }
@@ -77,16 +78,16 @@ function ControlView(parent, control_name, data) {
 }
 
 ControlView.prototype.fqn = function(element) {
-    var ret_val = '';
     if (element.hasClass('webonkyo')) {
         var temp = $(element).data('view_obj');
-        ret_val = temp.wo_name + '.'
-    }
 
-    if (element.hasClass("zone-container")) {
-        return ret_val
+        if (element.hasClass("zone-container")) {
+            return temp.wo_name
+        } else {
+            return ControlView.prototype.fqn(element.parent()) + '.' + temp.wo_name
+        }
     } else {
-        return ControlView.prototype.fqn(element.parent()) + ret_val
+        return ControlView.prototype.fqn(element.parent())
     }
 };
 
