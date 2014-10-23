@@ -7,28 +7,35 @@ function ProgramDescriptionView(model_type)
     this.my_model = new model_type();
     this.my_model.load_desc(this);
 
+    this.zones = {};
+
     this.output_list = $('<ul id="output"></ul>').appendTo( 'body' );
 }
 
 ProgramDescriptionView.prototype.load_desc_view = function(data) {
     this.container = $( '<div id="webonkyo-containter"></div>' ).appendTo( 'article#webOnkyo-page' );
     for (var key in data) {
-        var view_element = new ZoneView(this.container, key, data[key]);
+        this.zones[key] = new ZoneView(this.container, key, data[key]);
     }
+
+//    this.update_status({'data':JSON.stringify(['zone3','volume','10'])});
+//    this.update_status({'data':JSON.stringify(['zone3','input-selector','CD'])});
 };
 
 function ZoneView(parent, zone_name, data) {
     this.wo_name = zone_name;
-    this.container = $( '<div class="webonkyo zone-container zone-container-' + zone_name + '"><h2>' + zone_name + '</h2></div>' )
+    this.fields = {};
+    this.container = $( '<div class="webonkyo zone-container zone-container-' + zone_name + '"><h2>' + zone_name + '</h2></div>' );
     this.container.appendTo( parent );
     for (var key in data) {
-        var view_element = new ControlView(this.container, key, data[key]);
+        this.fields[key] = new ControlView(this.container, key, data[key]);
     }
     this.container.data('view_obj', this);
 }
 
 function ControlView(parent, control_name, data) {
     this.wo_name = control_name;
+    this.type = undefined;
 
     var action = function() {
         var my_selector = $( this );
@@ -47,9 +54,12 @@ function ControlView(parent, control_name, data) {
     };
 
     if ('type' in data){
+        this.type = data['type'];
         if( data['type'] == 'option' ){
             this.container = $('<form class="webonkyo"><fieldset data-role="controlgroup" data-type="horizontal" ' +
                 'data-mini="true"></fieldset></form>');
+
+            this.options = {};
 
             var option_char = 'a';
 
@@ -61,6 +71,8 @@ function ControlView(parent, control_name, data) {
                 input.appendTo(this.container.children());
 
                 $(input[0]).bind("click", action);
+
+                this.options[key] = input;
 
                 option_char = String.fromCharCode(option_char.charCodeAt(0) + 1);
 
@@ -91,38 +103,6 @@ ControlView.prototype.fqn = function(element) {
     }
 };
 
-ProgramDescriptionView.prototype.save_desc = function() {
-    this.my_model = this.create_model();
-    this.my_model.save_desc();
-};
-
-ProgramDescriptionView.prototype._stop_desc_callback = function(data) {
-    console.log('_stop_desc returned with : ' + data.retval);
-    var dialog;
-    if(data.retval == 'success') {
-
-    } else {
-        dialog = $('<div id="dialog-message" title="Failure Stopping" class="ui-state-error"><p>\
-                        <span class="ui-icon ui-icon-alert" style="float:left; margin:0 7px 50px 0;"></span>\
-                        Error stopping test!\
-                        </p></div>');
-        dialog.appendTo($('body'));
-        dialog.dialog({
-          modal: true,
-          buttons: {
-            Ok: function() {
-              $( this ).dialog( "close" );
-            }
-          }
-        });
-    }
-};
-
-ProgramDescriptionView.prototype.stop_desc = function() {
-    this.my_model.stop_desc(this._stop_desc_callback);
-};
-
-
 ProgramDescriptionView.prototype.update_error = function(message)
 {
 //    console.log('A status message has arrived!');
@@ -148,4 +128,19 @@ ProgramDescriptionView.prototype.update_status = function(message)
 //    console.log('A status message has arrived!');
     var data = JSON.parse(message.data);
 
+    var zone = data[0];
+    var field = data[1];
+    var status = data[2];
+
+    var zone_element =  this.zones[zone];
+    var field_container = zone_element.fields[field];
+
+    if(field_container.type == 'option') {
+        $( field_container.options[status][0] ).prop("checked", true).checkboxradio( "refresh" );
+    }else if(field_container.type == 'int') {
+        if ( typeof(status) == 'string') {
+            status = parseInt('0x' + status);   // Convert hex string to int
+        }
+        field_container.container.val(status).slider("refresh");
+    }
 };

@@ -188,6 +188,14 @@ class StateManager(object):
 
     def event_stream(self):
         with self.__event_dispatch.create_listener() as my_queue:
+
+            # Trigger status update
+            desc = self.load_desc('system.desc')
+            print 'Queuing status update'
+            for zone in desc:
+                for field in zone:
+                    state_manager.exec_cmd(zone + '.' + field + '=query')
+
             while True:
                 message = self.__event_dispatch.listen(my_queue)
                 # print 'sending %r' % (message,)
