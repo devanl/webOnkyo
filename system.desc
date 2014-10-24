@@ -6,7 +6,8 @@
                 "vcr" : "HTPC",
                 "cbl" : "FiOS",
                 "aux1" : "Wii",
-                "CD" : "BT"
+                "CD" : "BT",
+                "standby" : "Off"
                 }
             },
         "volume" : {
@@ -22,7 +23,8 @@
                 "vcr" : "HTPC",
                 "cbl" : "FiOS",
                 "aux1" : "Wii",
-                "CD" : "BT"
+                "CD" : "BT",
+                "standby" : "Off"
                 }
             },
         "volume" : {
@@ -38,7 +40,8 @@
                 "vcr" : "HTPC",
                 "cbl" : "FiOS",
                 "aux1" : "Wii",
-                "CD" : "BT"
+                "CD" : "BT",
+                "standby" : "Off"
                 }
             },
         "volume" : {

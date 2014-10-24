@@ -110,6 +110,7 @@ class ReceiverMonitor(threading.Thread):
         :return: None
         """
         self.device_lock = threading.Lock()
+        self.tx_ready = threading.BoundedSemaphore()
 
     def __teardown(self):
         """
@@ -124,11 +125,24 @@ class ReceiverMonitor(threading.Thread):
         :return: None
         """
         for receiver in self.receivers:
-            response = receiver.get(timeout=0.1)
+            response = receiver.get(timeout=0.5)
+            try:
+                self.tx_ready.release()
+            except ValueError:
+                pass
             if response is not None:
                 print repr(response)
                 print repr(iscp_to_command(response))
-                self.rx_callback((receiver.device_name, iscp_to_command(response)))
+                zone,cmd,arg = iscp_to_command(response)
+
+                # parade standby as selector option
+                if cmd in ('system-power', 'power'):
+                    if zone == 'main':
+                        cmd = 'input-selector'
+                    else:
+                        cmd = 'selector'
+
+                self.rx_callback((receiver.device_name, (zone, cmd, arg)))
 
     def send_command(self, cmd):
         """
@@ -136,6 +150,16 @@ class ReceiverMonitor(threading.Thread):
         :param cmd: ISCP message
         :return: None
         """
+        import re
+        zone,cmd,arg = re.split('\.|=', cmd)
+        # parade standby as selector option
+        if cmd in ('input-selector', 'selector') and arg == 'standby':
+            if zone == 'main':
+                cmd = 'system-power'
+            else:
+                cmd = 'power'
+        cmd = '%s.%s=%s' % (zone,cmd,arg)
+
         try:
             cmd = command_to_iscp(cmd)
         except ValueError as err:
@@ -144,6 +168,7 @@ class ReceiverMonitor(threading.Thread):
         print 'Sending: %r' % (cmd,)
 
         for receiver in self.receivers:
+            self.tx_ready.acquire()
             receiver.send(cmd)
 
         return {'retval': 'success'}
@@ -165,10 +190,18 @@ class StateManager(object):
         self.event_log = []
 
     def exec_cmd(self, command):
+        print 'Sending %r' % (command,)
         return self.receiver_monitor.send_command(command)
 
     def rx_callback(self, data):
-        self.__event_dispatch.send('status', data)
+        # Hanlde case where receiver turns on by querying selector
+        if 'selector' in data[1][1] and 'on' == data[1][2]:
+            if data[1][0] == 'main':
+                self.receiver_monitor.send_command('main.input-selector=query')
+            else:
+                self.receiver_monitor.send_command('%s.selector=query' % (data[1][0],))
+        else:
+            self.__event_dispatch.send('status', data)
 
     @staticmethod
     def load_desc(file_name):
@@ -189,14 +222,16 @@ class StateManager(object):
             return {'retval': 'success'}
 
     def event_stream(self):
+        import time
         with self.__event_dispatch.create_listener() as my_queue:
 
             # Trigger status update
             desc = self.load_desc('system.desc')
             print 'Queuing status update'
             for zone in desc:
-                for field in zone:
+                for field in desc[zone]:
                     state_manager.exec_cmd(zone + '.' + field + '=query')
+                    time.sleep(0.01)
 
             while True:
                 message = self.__event_dispatch.listen(my_queue)

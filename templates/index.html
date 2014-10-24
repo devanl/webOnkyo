@@ -23,8 +23,8 @@
   $(document).ready( function() {
       var sse = new EventSource('/_event_stream');
       var on_status_message = function(message) {
-//          console.log('A status message has arrived!');
-//          $('#output').append('<li>'+message.data+'</li>');
+          console.log('A status message has arrived!');
+          console.log(message.data);
           $TEST_VIEW.update_status(message)
       };
       var on_error_message = function(message) {

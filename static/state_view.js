@@ -125,7 +125,6 @@ ProgramDescriptionView.prototype.update_error = function(message)
 
 ProgramDescriptionView.prototype.update_status = function(message)
 {
-    console.log('A status message has arrived!');
     var data = JSON.parse(message.data)[1];
 
     var zone = data[0];
@@ -146,20 +145,26 @@ ProgramDescriptionView.prototype.update_status = function(message)
         field_container = zone_element.fields[field];
     }
 
-    if(field_container.type == 'option') {
-        if (status instanceof Array) {
-            for (var status_idx in status) {
-                if (status[status_idx] in field_container.options) {
-                    $( field_container.options[status[status_idx]][0] ).prop("checked", true).checkboxradio( "refresh" );
-                }
+    if(field_container != undefined) {
+        if(field_container.type == 'option') {
+            for (var idx in field_container.options) {
+                $( field_container.options[idx][0] ).prop("checked", false).checkboxradio( "refresh" );
             }
-        } else {
-            $( field_container.options[status][0] ).prop("checked", true).checkboxradio( "refresh" );
+            if (status instanceof Array) {
+                for (var status_idx in status) {
+                    if (status[status_idx] in field_container.options) {
+                        $( field_container.options[status[status_idx]][0] ).prop("checked", true).checkboxradio( "refresh" );
+                    }
+                }
+            } else {
+                $( field_container.options[status][0] ).prop("checked", true).checkboxradio( "refresh" );
+            }
+        }else if(field_container.type == 'int') {
+            if ( typeof(status) == 'string') {
+                status = parseInt('0x' + status);   // Convert hex string to int
+            }
+            field_container.container.val(status).slider("refresh");
         }
-    }else if(field_container.type == 'int') {
-        if ( typeof(status) == 'string') {
-            status = parseInt('0x' + status);   // Convert hex string to int
-        }
-        field_container.container.val(status).slider("refresh");
     }
+    console.log('Status message completed');
 };
