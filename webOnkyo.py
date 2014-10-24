@@ -126,7 +126,9 @@ class ReceiverMonitor(threading.Thread):
         for receiver in self.receivers:
             response = receiver.get(timeout=0.1)
             if response is not None:
-                self.rx_callback((receiver, response))
+                print repr(response)
+                print repr(iscp_to_command(response))
+                self.rx_callback((receiver.device_name, iscp_to_command(response)))
 
     def send_command(self, cmd):
         """
@@ -137,7 +139,7 @@ class ReceiverMonitor(threading.Thread):
         try:
             cmd = command_to_iscp(cmd)
         except ValueError as err:
-            return {'retval': 'error', 'exception': err}
+            return {'retval': 'error', 'exception': err.message}
 
         print 'Sending: %r' % (cmd,)
 
@@ -240,7 +242,7 @@ if __name__ == "__main__":
                                      formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("--comm", '-c',
                         type=str,
-                        default='COM5',
+                        default='COM3',
                         help='Reciever device path (Serial port)')
     parser.add_argument("--host", '-i',
                         type=str,
@@ -251,4 +253,4 @@ if __name__ == "__main__":
     options = parser.parse_args()
 
     state_manager = StateManager(options)
-    app.run(threaded=True, host='0.0.0.0')
+    app.run(threaded=True, port=5678)

@@ -125,18 +125,37 @@ ProgramDescriptionView.prototype.update_error = function(message)
 
 ProgramDescriptionView.prototype.update_status = function(message)
 {
-//    console.log('A status message has arrived!');
-    var data = JSON.parse(message.data);
+    console.log('A status message has arrived!');
+    var data = JSON.parse(message.data)[1];
 
     var zone = data[0];
     var field = data[1];
     var status = data[2];
 
     var zone_element =  this.zones[zone];
-    var field_container = zone_element.fields[field];
+
+    // Some fields come back with more than one name
+    var field_container = undefined;
+    if (field instanceof Array) {
+        for (var field_name in field) {
+            if (field[field_name] in zone_element.fields) {
+                field_container = zone_element.fields[field[field_name]];
+            }
+        }
+    } else {
+        field_container = zone_element.fields[field];
+    }
 
     if(field_container.type == 'option') {
-        $( field_container.options[status][0] ).prop("checked", true).checkboxradio( "refresh" );
+        if (status instanceof Array) {
+            for (var status_idx in status) {
+                if (status[status_idx] in field_container.options) {
+                    $( field_container.options[status[status_idx]][0] ).prop("checked", true).checkboxradio( "refresh" );
+                }
+            }
+        } else {
+            $( field_container.options[status][0] ).prop("checked", true).checkboxradio( "refresh" );
+        }
     }else if(field_container.type == 'int') {
         if ( typeof(status) == 'string') {
             status = parseInt('0x' + status);   // Convert hex string to int
