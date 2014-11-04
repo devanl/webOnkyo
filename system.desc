@@ -6,7 +6,7 @@
                 "vcr" : "HTPC",
                 "cbl" : "FiOS",
                 "aux1" : "Wii",
-                "CD" : "BT",
+                "cd" : "BT",
                 "standby" : "Off"
                 }
             },
@@ -23,7 +23,7 @@
                 "vcr" : "HTPC",
                 "cbl" : "FiOS",
                 "aux1" : "Wii",
-                "CD" : "BT",
+                "cd" : "BT",
                 "standby" : "Off"
                 }
             },
@@ -40,7 +40,7 @@
                 "vcr" : "HTPC",
                 "cbl" : "FiOS",
                 "aux1" : "Wii",
-                "CD" : "BT",
+                "cd" : "BT",
                 "standby" : "Off"
                 }
             },

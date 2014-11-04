@@ -5,8 +5,14 @@ from Queue import Queue
 from flask import Flask, render_template, request, Response
 import threading
 import contextlib
-app = Flask(__name__)
 from eiscp.core import ISCP, eISCP, command_to_iscp, iscp_to_command
+
+import logging
+logging.basicConfig(
+    filename = 'c:\\Temp\\hello-service.log',
+    level = logging.DEBUG,
+    format = '[webOnkyo-service] %(levelname)-7.7s %(message)s'
+)
 
 class EventDispatcher(object):
     def __init__(self):
@@ -40,6 +46,36 @@ class EventDispatcher(object):
         return message
 
 import traceback
+
+state_manager = None
+
+
+def load_sm():
+    parser = argparse.ArgumentParser(description='Web interface to ISCP devices',
+                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser.add_argument("--comm", '-c',
+                        type=str,
+                        default='COM3',
+                        help='Reciever device path (Serial port)')
+    parser.add_argument("--host", '-i',
+                        type=str,
+                        help='Reciever IP address')
+    parser.add_argument("--port", '-p',
+                        type=str,
+                        help='Reciever port (eISCP only)')
+    options = parser.parse_args()
+
+    global state_manager
+    state_manager = StateManager(options)
+
+
+class OFlask(Flask):
+    def run(self, host=None, port=None, debug=None, **options):
+        load_sm()
+        super(OFlask,self).run(host, port, debug, **options)
+
+
+app = OFlask(__name__)
 
 
 class ReceiverMonitor(threading.Thread):
@@ -190,7 +226,7 @@ class StateManager(object):
         self.event_log = []
 
     def exec_cmd(self, command):
-        print 'Sending %r' % (command,)
+        logging.debug('Sending %r' % (command,))
         return self.receiver_monitor.send_command(command)
 
     def rx_callback(self, data):
@@ -226,12 +262,20 @@ class StateManager(object):
         with self.__event_dispatch.create_listener() as my_queue:
 
             # Trigger status update
-            desc = self.load_desc('system.desc')
+            desc = self.load_desc('C:\Users\devan_000\src\webOnkyo\system.desc')
             print 'Queuing status update'
             for zone in desc:
                 for field in desc[zone]:
                     state_manager.exec_cmd(zone + '.' + field + '=query')
                     time.sleep(0.01)
+
+                # check if zone is off
+                if zone == 'main':
+                    field = 'system-power'
+                else:
+                    field = 'power'
+                state_manager.exec_cmd(zone + '.' + field + '=query')
+                time.sleep(0.01)
 
             while True:
                 message = self.__event_dispatch.listen(my_queue)
@@ -255,7 +299,7 @@ def sse_request():
 def load_desc():
     global state_manager
     print 'load_desc call'
-    return json.dumps(state_manager.load_desc('system.desc'))
+    return json.dumps(state_manager.load_desc('C:\Users\devan_000\src\webOnkyo\system.desc'))
 
 # @app.route('/_save_desc', methods=['PUT'])
 # def save_desc():
@@ -272,20 +316,54 @@ def index():
 
 import argparse
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description='Web interface to ISCP devices',
-                                     formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    parser.add_argument("--comm", '-c',
-                        type=str,
-                        default='COM3',
-                        help='Reciever device path (Serial port)')
-    parser.add_argument("--host", '-i',
-                        type=str,
-                        help='Reciever IP address')
-    parser.add_argument("--port", '-p',
-                        type=str,
-                        help='Reciever port (eISCP only)')
-    options = parser.parse_args()
+"""
+"" This is where the service comes in
+"""
+import win32serviceutil
+import win32service
+import win32event
+import servicemanager
+import socket
+import time
+from multiprocessing import Process
 
-    state_manager = StateManager(options)
-    app.run(threaded=True, port=5678)
+def start_app():
+    app.run(threaded=True, host='0.0.0.0', port=5678)
+
+class HelloWorldSvc (win32serviceutil.ServiceFramework):
+    _svc_name_ = "webOnkyo-Service"
+    _svc_display_name_ = "webOnkyo Service"
+
+    def __init__(self,args):
+        win32serviceutil.ServiceFramework.__init__(self,args)
+        self.stop_event = win32event.CreateEvent(None,0,0,None)
+        socket.setdefaulttimeout(60)
+        self.stop_requested = False
+
+        self.server = Process(target=start_app)
+
+    def SvcStop(self):
+        self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
+        win32event.SetEvent(self.stop_event)
+        logging.info('Stopping service ...')
+        self.stop_requested = True
+        self.server.terminate()
+        self.server.join()
+
+    def SvcDoRun(self):
+        servicemanager.LogMsg(
+            servicemanager.EVENTLOG_INFORMATION_TYPE,
+            servicemanager.PYS_SERVICE_STARTED,
+            (self._svc_name_,'')
+        )
+        self.main()
+
+    def main(self):
+        logging.info(' ** Starting webOnkyo Service ** ')
+        # Simulate a main loop
+
+        self.server.start()
+        self.server.join()
+
+if __name__ == '__main__':
+    win32serviceutil.HandleCommandLine(HelloWorldSvc)
